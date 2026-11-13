@@ -1,6 +1,7 @@
 """Create a demo account with two weeks of realistic queue history.
 
-    python -m app.seed
+    python -m app.seed                      # always rebuild
+    python -m app.seed --if-stale-hours 6   # rebuild only if older than 6 h
 
 Safe to re-run: it deletes the demo account and rebuilds it. The history is
 produced by simulating a single-server queue (one counter per queue): people
@@ -9,11 +10,12 @@ give up if they wait too long. The current state at the end is live, so the
 demo opens with people waiting and someone at the counter.
 """
 
+import argparse
 import random
 from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from app.db import SessionLocal
 from app.models import Manager, Queue, Token, TokenEvent, TokenStatus
@@ -119,5 +121,22 @@ def seed(now: datetime | None = None) -> None:
     print(f"Demo account ready: {DEMO_EMAIL} / {DEMO_PASSWORD}")
 
 
+def demo_age(now: datetime) -> timedelta | None:
+    """How long ago the demo account was built, or None if it doesn't exist."""
+    with SessionLocal() as db:
+        created = db.execute(select(Manager.created_at).where(Manager.email == DEMO_EMAIL)).scalar_one_or_none()
+    return None if created is None else now - created
+
+
 if __name__ == "__main__":
-    seed()
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--if-stale-hours", type=float, default=None,
+                        help="only rebuild if the demo is missing or older than this")
+    args = parser.parse_args()
+    now = datetime.now(UTC)
+    if args.if_stale_hours is not None:
+        age = demo_age(now)
+        if age is not None and age < timedelta(hours=args.if_stale_hours):
+            print(f"Demo data is {age.total_seconds() / 3600:.1f} h old; keeping it.")
+            raise SystemExit(0)
+    seed(now)
