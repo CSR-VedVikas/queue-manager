@@ -111,7 +111,7 @@ def test_analytics_endpoint(client, auth, queue_id):
 
 
 def test_legacy_timezone_names_work(client, auth, queue_id):
-    """Chrome on many Indian machines reports 'Asia/Calcutta'. PostgreSQL
+    """Some browsers report India as 'Asia/Calcutta' (the old name). PostgreSQL
     builds without legacy aliases reject it; this once crashed the dashboard."""
     res = client.get(f"/api/analytics?queue_id={queue_id}&range=24h&tz=Asia/Calcutta", headers=auth)
     assert res.status_code == 200

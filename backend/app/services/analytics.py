@@ -24,8 +24,8 @@ class Window:
     granularity: Literal["hour", "day"]
 
 
-# Browsers still report some timezones by their old names (Chrome on many
-# Indian machines says "Asia/Calcutta"). Python knows the aliases, but a
+# Some browsers still report timezones by their old names (the Chromium used
+# in testing says "Asia/Calcutta" for India). Python knows the aliases, but a
 # PostgreSQL built against a trimmed system tz database may not, so always
 # send the current name.
 _LEGACY_TZ = {
