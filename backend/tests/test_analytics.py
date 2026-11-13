@@ -108,3 +108,26 @@ def test_analytics_endpoint(client, auth, queue_id):
     assert res.status_code == 200
     assert len(res.json()["series"]) == 30
     assert client.get("/api/analytics?range=1y", headers=auth).status_code == 422
+
+
+def test_legacy_timezone_names_work(client, auth, queue_id):
+    """Chrome on many Indian machines reports 'Asia/Calcutta'. PostgreSQL
+    builds without legacy aliases reject it; this once crashed the dashboard."""
+    res = client.get(f"/api/analytics?queue_id={queue_id}&range=24h&tz=Asia/Calcutta", headers=auth)
+    assert res.status_code == 200
+    assert res.json()["timezone"] == "Asia/Kolkata"
+
+
+def test_server_errors_still_carry_cors_headers(client, auth, monkeypatch):
+    """A crash must reach the browser as a readable 500, not as a fake
+    'network error' caused by missing CORS headers."""
+    from app.routers import queues as queues_router
+
+    def boom(*args, **kwargs):
+        raise RuntimeError("simulated failure")
+
+    monkeypatch.setattr(queues_router.analytics, "dashboard", boom)
+    res = client.get("/api/analytics", headers={**auth, "Origin": "http://localhost:5173"})
+    assert res.status_code == 500
+    assert res.headers.get("access-control-allow-origin") == "http://localhost:5173"
+    assert "problem" in res.json()["detail"]

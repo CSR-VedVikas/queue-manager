@@ -1,0 +1,24 @@
+# Render Blueprint for the API. Database is on Neon; set DATABASE_URL and
+# CORS_ORIGINS in the Render dashboard (they are secrets / deploy-specific).
+services:
+  - type: web
+    name: queue-manager-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Apply any pending migrations, then start the server.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: ENV
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

@@ -24,11 +24,43 @@ class Window:
     granularity: Literal["hour", "day"]
 
 
+# Browsers still report some timezones by their old names (Chrome on many
+# Indian machines says "Asia/Calcutta"). Python knows the aliases, but a
+# PostgreSQL built against a trimmed system tz database may not, so always
+# send the current name.
+_LEGACY_TZ = {
+    "Asia/Calcutta": "Asia/Kolkata",
+    "Asia/Katmandu": "Asia/Kathmandu",
+    "Asia/Saigon": "Asia/Ho_Chi_Minh",
+    "Asia/Rangoon": "Asia/Yangon",
+    "Asia/Dacca": "Asia/Dhaka",
+    "Asia/Thimbu": "Asia/Thimphu",
+    "Asia/Ulan_Bator": "Asia/Ulaanbaatar",
+    "Europe/Kiev": "Europe/Kyiv",
+    "America/Buenos_Aires": "America/Argentina/Buenos_Aires",
+    "Atlantic/Faeroe": "Atlantic/Faroe",
+    "Pacific/Truk": "Pacific/Chuuk",
+    "Pacific/Ponape": "Pacific/Pohnpei",
+}
+
+_pg_timezones: set[str] | None = None
+
+
 def resolve_timezone(name: str | None) -> ZoneInfo:
+    name = _LEGACY_TZ.get(name or "", name) or "UTC"
     try:
-        return ZoneInfo(name or "UTC")
+        return ZoneInfo(name)
     except (ZoneInfoNotFoundError, ValueError):
         return ZoneInfo("UTC")
+
+
+def _sql_safe_timezone(db: Session, tz: ZoneInfo) -> ZoneInfo:
+    """Use the zone only if PostgreSQL knows it too; otherwise UTC.
+    The list is read once per process and cached."""
+    global _pg_timezones
+    if _pg_timezones is None:
+        _pg_timezones = set(db.execute(text("SELECT name FROM pg_timezone_names")).scalars())
+    return tz if tz.key in _pg_timezones else ZoneInfo("UTC")
 
 
 def build_window(range_: Range, tz: ZoneInfo, now: datetime) -> Window:
@@ -62,7 +94,7 @@ def dashboard(
     now: datetime | None = None,
 ) -> dict:
     now = now or datetime.now(UTC)
-    tz = resolve_timezone(tz_name)
+    tz = _sql_safe_timezone(db, resolve_timezone(tz_name))
     w = build_window(range_, tz, now)
     params = {
         "manager_id": manager_id, "queue_id": queue_id, "since": w.since, "now": now,
