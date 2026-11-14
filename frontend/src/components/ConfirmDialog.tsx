@@ -38,12 +38,12 @@ export function ConfirmDialog({
       onCancel={(e) => {
         if (busy) e.preventDefault()
       }}
-      className="m-auto w-[min(92vw,440px)] rounded-lg border border-line bg-white p-0 text-ink backdrop:bg-ink/40"
+      className="m-auto w-[min(92vw,440px)] rounded-2xl border border-line bg-white p-0 text-ink shadow-pop backdrop:bg-ink/45"
     >
       <div className="p-6">
-        <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="mt-2 text-slate">{body}</p>
-        <div className="mt-6 flex justify-end gap-3">
+        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <p className="mt-2 leading-relaxed text-slate">{body}</p>
+        <div className="mt-7 flex justify-end gap-3">
           <Button variant="secondary" onClick={onClose} disabled={busy}>
             Keep it
           </Button>
