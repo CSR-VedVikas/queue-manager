@@ -79,3 +79,16 @@ export interface Analytics {
     avg_wait_sec: number | null
   }[]
 }
+
+export interface Insights {
+  headline: string
+  points: string[]
+  suggestion: string | null
+  model: string | null
+  generated_at: string
+  cached: boolean
+}
+
+export interface Features {
+  ai_summaries: boolean
+}

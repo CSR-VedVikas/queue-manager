@@ -28,7 +28,8 @@ A full-stack queue management app. A manager signs in, creates queues, issues to
 | Backend | Python, FastAPI, SQLAlchemy 2, Alembic, Pydantic |
 | Database | PostgreSQL |
 | Auth | bcrypt password hashing, JWT bearer tokens |
-| Tests | pytest (41 tests, including concurrency and CORS), Playwright end-to-end |
+| AI (optional) | Claude Fable 5.2 via the Anthropic Python SDK, for the dashboard summary |
+| Tests | pytest (55 tests, including concurrency, CORS and the AI summary), Playwright end-to-end |
 | Hosting | Vercel (frontend), Render (API), Neon (PostgreSQL), all free tiers |
 
 ```
@@ -44,6 +45,17 @@ The full reasoning is in [docs/DESIGN.md](docs/DESIGN.md). The short version:
 - **Tokens follow a state machine:** `waiting → serving → served`, with `cancelled` from either of the first two. Every other transition is rejected with 409.
 - **Analytics come from facts, not counters.** Each token records when it joined, was called, finished or was cancelled. "Longest line" is computed with a sweep line (`+1` per arrival, `−1` per departure, running sum ordered by time) in SQL. Time buckets follow the viewer's timezone.
 - **The UI stays correct under polling.** The queue screen refreshes every 5 s to stay in sync across tabs. Each action cancels any refresh already in flight, so an older response can't overwrite a newer one, and every action returns the full updated queue. Wait times use the server's clock, so a wrong laptop clock doesn't skew them.
+
+## AI summary (optional)
+
+The dashboard can add a short written read of the period on screen: a headline, two to four observations and one thing to try next. It is written by **Claude Fable 5.2** from the same numbers the charts show.
+
+- **Off unless configured.** Set `ANTHROPIC_API_KEY` on the API server to turn it on. Without it the dashboard looks exactly as it does today; `GET /api/features` tells the frontend which it is.
+- **Only numbers leave the server.** No names people gave, no emails, no ids. The request uses structured output (a JSON schema) so the answer always has the same shape, low effort (it summarises given numbers), and server-side refusal fallbacks.
+- **Bounded cost.** Nothing is sent until someone presses *Summarize*; one answer per view is reused for the rest of the hour; an empty period is answered without a model call; and `INSIGHTS_DAILY_LIMIT` (default 50) caps model calls per day across the server. Each call is a few thousand tokens, roughly $0.05 to $0.10 at Fable 5.2 prices.
+- **Failures are plain.** No key, a busy service, a timeout, a refusal or an unreadable answer each show one clear sentence in the panel; the charts are never affected.
+
+Code: `backend/app/services/insights.py`, `backend/app/routers/insights.py`, `frontend/src/components/InsightsPanel.tsx`. Tests: `backend/tests/test_insights.py` (a fake client, so they need no key).
 
 ## Run it locally
 
@@ -86,6 +98,7 @@ npm run e2e
 
 1. **Database:** create a project on [Neon](https://neon.tech) and copy its connection string.
 2. **API:** on [Render](https://render.com), *New → Blueprint* and pick this repo; it reads `render.yaml`. Set `DATABASE_URL` (from Neon) and `CORS_ORIGINS` (the main Vercel URL). `CORS_ORIGIN_REGEX` in `render.yaml` also allows the project's per-deployment Vercel URLs; change the team suffix if you fork this. `JWT_SECRET` is generated automatically. Each start applies migrations and rebuilds the demo account if its data is more than an hour old, so the demo's waiting times stay realistic (the rebuild adds a few seconds to that start).
+   To turn on the AI summary, also set `ANTHROPIC_API_KEY` there.
 3. **Frontend:** on [Vercel](https://vercel.com), import the repo with root directory `frontend` and set `VITE_API_URL` to the Render URL.
 
 ## Project layout

@@ -125,3 +125,16 @@ class QueueDetailOut(BaseModel):
     waiting: list[TokenOut]          # in queue order, front first
     recent: list[TokenOut]           # last finished tokens, newest first
     server_time: datetime            # lets the client correct for clock skew
+
+
+class InsightsOut(BaseModel):
+    headline: str
+    points: list[str]
+    suggestion: str | None
+    model: str | None                # which model wrote it; None when no call was needed
+    generated_at: datetime
+    cached: bool                     # true when reused from earlier this hour
+
+
+class FeaturesOut(BaseModel):
+    ai_summaries: bool

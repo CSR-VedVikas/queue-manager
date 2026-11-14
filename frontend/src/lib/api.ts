@@ -1,5 +1,5 @@
 import { markSlow } from './serverStatus'
-import type { Analytics, AuthResponse, Manager, QueueDetail, QueueSummary, Range } from './types'
+import type { Analytics, AuthResponse, Features, Insights, Manager, QueueDetail, QueueSummary, Range } from './types'
 
 const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '')
 const TOKEN_KEY = 'qm.token'
@@ -100,6 +100,12 @@ const post = <T>(path: string, body?: unknown) =>
 
 // ---------- endpoints
 
+function analyticsParams(range: Range, queueId: number | null) {
+  const params = new URLSearchParams({ range, tz: timezone })
+  if (queueId !== null) params.set('queue_id', String(queueId))
+  return params
+}
+
 export const api = {
   health: () => request<{ status: string }>('/api/health'),
 
@@ -122,9 +128,10 @@ export const api = {
   serveNext: (queueId: number) => post<QueueDetail>(`/api/queues/${queueId}/serve-next`),
   complete: (queueId: number) => post<QueueDetail>(`/api/queues/${queueId}/complete`),
 
-  analytics: (range: Range, queueId: number | null) => {
-    const params = new URLSearchParams({ range, tz: timezone })
-    if (queueId !== null) params.set('queue_id', String(queueId))
-    return request<Analytics>(`/api/analytics?${params}`)
-  },
+  analytics: (range: Range, queueId: number | null) =>
+    request<Analytics>(`/api/analytics?${analyticsParams(range, queueId)}`),
+  insights: (range: Range, queueId: number | null) =>
+    post<Insights>(`/api/analytics/insights?${analyticsParams(range, queueId)}`),
+
+  features: () => request<Features>('/api/features'),
 }
