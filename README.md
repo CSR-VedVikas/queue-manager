@@ -85,7 +85,7 @@ npm run e2e
 ## Deploying (free tiers)
 
 1. **Database:** create a project on [Neon](https://neon.tech) and copy its connection string.
-2. **API:** on [Render](https://render.com), *New → Blueprint* and pick this repo; it reads `render.yaml`. Set `DATABASE_URL` (from Neon) and `CORS_ORIGINS` (the main Vercel URL). `CORS_ORIGIN_REGEX` in `render.yaml` also allows the project's per-deployment Vercel URLs; change the team suffix if you fork this. `JWT_SECRET` is generated automatically. Each start applies migrations and rebuilds the demo account if its data is more than 6 hours old, so the demo's waiting times stay realistic.
+2. **API:** on [Render](https://render.com), *New → Blueprint* and pick this repo; it reads `render.yaml`. Set `DATABASE_URL` (from Neon) and `CORS_ORIGINS` (the main Vercel URL). `CORS_ORIGIN_REGEX` in `render.yaml` also allows the project's per-deployment Vercel URLs; change the team suffix if you fork this. `JWT_SECRET` is generated automatically. Each start applies migrations and rebuilds the demo account if its data is more than an hour old, so the demo's waiting times stay realistic (the rebuild adds a few seconds to that start).
 3. **Frontend:** on [Vercel](https://vercel.com), import the repo with root directory `frontend` and set `VITE_API_URL` to the Render URL.
 
 ## Project layout

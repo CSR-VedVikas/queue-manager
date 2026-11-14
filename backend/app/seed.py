@@ -1,7 +1,7 @@
 """Create a demo account with two weeks of realistic queue history.
 
     python -m app.seed                      # always rebuild
-    python -m app.seed --if-stale-hours 6   # rebuild only if older than 6 h
+    python -m app.seed --if-stale-hours 1   # rebuild only if older than 1 h
 
 Safe to re-run: it deletes the demo account and rebuilds it. The history is
 produced by simulating a single-server queue (one counter per queue): people

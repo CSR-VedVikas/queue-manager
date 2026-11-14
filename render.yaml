@@ -8,10 +8,10 @@ services:
     region: singapore
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    # Apply pending migrations, refresh the demo data if it is over 6 hours
+    # Apply pending migrations, refresh the demo data if it is over 1 hour
     # old (its timestamps are relative to when it was built), then start.
     # The free tier sleeps when idle, so this runs on most first visits.
-    startCommand: alembic upgrade head && (python -m app.seed --if-stale-hours 6 || echo "demo seed skipped") && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && (python -m app.seed --if-stale-hours 1 || echo "demo seed skipped") && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
       - key: ENV
