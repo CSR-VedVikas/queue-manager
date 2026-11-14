@@ -21,14 +21,6 @@ class Settings(BaseSettings):
     # deployment URL instead of the main one is blocked by CORS and the app
     # reports "Can't reach the server". Must be anchored with ^ and $.
     cors_origin_regex: str | None = None
-    # AI summaries on the dashboard. Optional: with no key the feature is off
-    # and the dashboard says so. The key stays on the server; the browser
-    # never sees it.
-    anthropic_api_key: str | None = None
-    insights_model: str = "claude-fable-5-2"
-    # Model calls per UTC day across all users. The demo account is public,
-    # so this caps the bill even if someone keeps pressing the button.
-    insights_daily_limit: int = 50
 
     @property
     def sqlalchemy_url(self) -> str:

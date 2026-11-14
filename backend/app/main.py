@@ -7,7 +7,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.db import engine
-from app.routers import auth, insights, queues
+from app.routers import auth, queues
 from app.services.queue_service import QueueError
 
 log = logging.getLogger("queue_manager")
@@ -66,4 +66,3 @@ def health():
 
 app.include_router(auth.router)
 app.include_router(queues.router)
-app.include_router(insights.router)

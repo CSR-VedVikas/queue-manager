@@ -24,9 +24,6 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
-      # Optional: turns on the dashboard's AI summary (Claude Fable 5.2).
-      - key: ANTHROPIC_API_KEY
-        sync: false
       # Also allow this project's other Vercel deployment URLs
       # (frontend-<hash>-ved-projects10.vercel.app, frontend-git-<branch>-...).
       - key: CORS_ORIGIN_REGEX

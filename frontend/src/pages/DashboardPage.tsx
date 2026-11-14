@@ -13,7 +13,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { InsightsPanel } from '../components/InsightsPanel'
 import { ErrorNote, Loading, PageTitle, Panel } from '../components/ui'
 import { api } from '../lib/api'
 import { formatDuration } from '../lib/time'
@@ -41,9 +40,6 @@ export function DashboardPage() {
   const [queueId, setQueueId] = useState<number | null>(null)
 
   const queues = useQuery({ queryKey: ['queues'], queryFn: api.listQueues })
-  // Optional server feature; staleTime keeps it to one request per session.
-  const features = useQuery({ queryKey: ['features'], queryFn: api.features, staleTime: Infinity, retry: false })
-  const queueName = queues.data?.find((q) => q.id === queueId)?.name
   const data = useQuery({
     queryKey: ['analytics', range, queueId],
     queryFn: () => api.analytics(range, queueId),
@@ -80,12 +76,6 @@ export function DashboardPage() {
       >
         Dashboard
       </PageTitle>
-
-      {features.data?.ai_summaries && data.data && (
-        <div className="mb-6">
-          <InsightsPanel range={range} queueId={queueId} queueName={queueName} />
-        </div>
-      )}
 
       {data.isPending && <Loading what="analytics" />}
       {data.isError && <ErrorNote message={data.error.message} onRetry={() => void data.refetch()} />}
