@@ -2,7 +2,7 @@
 
 A full-stack queue management app. A manager signs in, creates queues, issues tokens to people as they arrive, reorders the line, calls the next person to the counter, and sees how long people wait.
 
-**Live app:** _link added after deployment_
+**Live app:** https://frontend-seven-psi-28.vercel.app
 **Demo account:** `demo@queuemanager.app` / `demo1234` (or press "Open the demo account" on the sign-in page). It has three queues with two weeks of simulated history, so the dashboard has real data to show.
 
 > The API runs on a free hosting tier that sleeps when idle. The first request after a quiet period can take up to a minute; the app shows a "starting the server" notice while it wakes.
@@ -28,7 +28,7 @@ A full-stack queue management app. A manager signs in, creates queues, issues to
 | Backend | Python, FastAPI, SQLAlchemy 2, Alembic, Pydantic |
 | Database | PostgreSQL |
 | Auth | bcrypt password hashing, JWT bearer tokens |
-| Tests | pytest (33 tests, including concurrency), Playwright end-to-end |
+| Tests | pytest (41 tests, including concurrency and CORS), Playwright end-to-end |
 | Hosting | Vercel (frontend), Render (API), Neon (PostgreSQL), all free tiers |
 
 ```
@@ -85,7 +85,7 @@ npm run e2e
 ## Deploying (free tiers)
 
 1. **Database:** create a project on [Neon](https://neon.tech) and copy its connection string.
-2. **API:** on [Render](https://render.com), *New → Blueprint* and pick this repo; it reads `render.yaml`. Set `DATABASE_URL` (from Neon) and `CORS_ORIGINS` (the Vercel URL). `JWT_SECRET` is generated automatically. Each start applies migrations and rebuilds the demo account if its data is more than 6 hours old, so the demo's waiting times stay realistic.
+2. **API:** on [Render](https://render.com), *New → Blueprint* and pick this repo; it reads `render.yaml`. Set `DATABASE_URL` (from Neon) and `CORS_ORIGINS` (the main Vercel URL). `CORS_ORIGIN_REGEX` in `render.yaml` also allows the project's per-deployment Vercel URLs; change the team suffix if you fork this. `JWT_SECRET` is generated automatically. Each start applies migrations and rebuilds the demo account if its data is more than 6 hours old, so the demo's waiting times stay realistic.
 3. **Frontend:** on [Vercel](https://vercel.com), import the repo with root directory `frontend` and set `VITE_API_URL` to the Render URL.
 
 ## Project layout

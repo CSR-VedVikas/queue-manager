@@ -24,3 +24,7 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false
+      # Also allow this project's other Vercel deployment URLs
+      # (frontend-<hash>-ved-projects10.vercel.app, frontend-git-<branch>-...).
+      - key: CORS_ORIGIN_REGEX
+        value: ^https://frontend(-[a-z0-9-]+)?-ved-projects10\.vercel\.app$
