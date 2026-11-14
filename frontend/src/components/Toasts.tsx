@@ -29,17 +29,24 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div aria-live="polite" className="pointer-events-none fixed bottom-4 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 flex-col gap-2">
+      <div aria-live="polite" className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex w-[min(92vw,420px)] -translate-x-1/2 flex-col gap-2">
         {toasts.map((t) => (
           <div
             key={t.id}
             role={t.kind === 'error' ? 'alert' : 'status'}
-            className={`pointer-events-auto flex items-start justify-between gap-3 rounded-md px-4 py-3 text-[15px] shadow-lg ${
-              t.kind === 'error' ? 'bg-danger text-white' : 'bg-ink text-white'
+            className={`pointer-events-auto flex animate-rise items-start gap-3 rounded-xl px-4 py-3 text-[15px] text-white shadow-pop ring-1 ring-inset ring-white/10 ${
+              t.kind === 'error' ? 'bg-danger' : 'bg-ink'
             }`}
           >
-            <span>{t.message}</span>
-            <button type="button" onClick={() => dismiss(t.id)} className="text-white/70 hover:text-white" aria-label="Dismiss">
+            <span aria-hidden="true"
+              className={`mt-[3px] flex size-[18px] shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                t.kind === 'error' ? 'bg-white text-danger' : 'bg-signal text-board'
+              }`}>
+              {t.kind === 'error' ? '!' : '✓'}
+            </span>
+            <span className="min-w-0 flex-1">{t.message}</span>
+            <button type="button" onClick={() => dismiss(t.id)}
+              className="-mr-1 rounded px-1 text-lg leading-none text-white/60 transition-colors hover:text-white" aria-label="Dismiss">
               ×
             </button>
           </div>

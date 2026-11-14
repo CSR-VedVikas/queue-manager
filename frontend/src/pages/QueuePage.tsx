@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { useToast } from '../components/Toasts'
-import { Button, ErrorNote, Icon, IconButton, Loading, Panel } from '../components/ui'
+import { Button, ErrorNote, Icon, IconButton, LiveDot, Loading, Panel, Pill, TextField } from '../components/ui'
 import { ApiError, api } from '../lib/api'
 import { clockOffset, formatClock, formatDuration, tokenCode, useNow } from '../lib/time'
 import type { QueueDetail, Token } from '../lib/types'
@@ -70,10 +70,13 @@ export function QueuePage() {
   if (!validId || queue.isError) {
     if (!validId || (queue.error instanceof ApiError && queue.error.status === 404)) {
       return (
-        <Panel className="px-6 py-14 text-center">
-          <p className="text-xl font-semibold">This queue doesn't exist</p>
+        <Panel className="px-6 py-16 text-center">
+          <p className="text-xl font-semibold tracking-tight">This queue doesn't exist</p>
           <p className="mt-2 text-slate">It may have been deleted, or the link is wrong.</p>
-          <Link to="/queues" className="mt-5 inline-block font-semibold underline underline-offset-4">Back to queues</Link>
+          <Link to="/queues"
+            className="mt-5 inline-block font-medium underline decoration-line decoration-2 underline-offset-4 hover:decoration-ink">
+            Back to queues
+          </Link>
         </Panel>
       )
     }
@@ -103,15 +106,13 @@ export function QueuePage() {
   // scrolling past the whole line) and in the side column on wide screens.
   const addPanel = (where: 'mobile' | 'desktop') => (
     <Panel className="p-5">
-      <h2 className="text-xl font-semibold">Add a person</h2>
+      <h2 className="text-lg font-semibold tracking-tight">Add a person</h2>
+      <p className="mt-0.5 text-sm text-slate">They get the next token and join the back of the line.</p>
       <form onSubmit={addPerson} className="mt-4">
-        <label htmlFor={`token-label-${where}`} className="mb-1.5 block text-sm font-semibold">
-          Name <span className="font-normal text-slate">(optional)</span>
-        </label>
-        <input id={`token-label-${where}`} value={label} onChange={(e) => setLabel(e.target.value)} maxLength={80}
+        <TextField id={`token-label-${where}`} value={label} onChange={(e) => setLabel(e.target.value)} maxLength={80}
           placeholder="Who is this token for?"
-          className="h-11 w-full rounded-md border border-line bg-white px-3 text-[15px] placeholder:text-slate/70 hover:border-slate focus:border-ink focus:outline-none" />
-        <Button type="submit" className="mt-3 w-full" disabled={busy}>
+          label={<>Name <span className="font-normal text-slate">(optional)</span></>} />
+        <Button type="submit" size="lg" className="mt-3 w-full" disabled={busy}>
           Issue token
         </Button>
       </form>
@@ -120,10 +121,14 @@ export function QueuePage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Link to="/queues" className="text-[15px] font-semibold text-slate hover:text-ink">← All queues</Link>
-          <h1 className="mt-1 font-display text-[40px] font-semibold leading-none tracking-tight">{q.name}</h1>
+      <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <Link to="/queues"
+            className="-ml-1 inline-flex items-center gap-1 rounded-md px-1 text-sm font-medium text-slate transition-colors hover:text-ink">
+            {Icon.back}
+            All queues
+          </Link>
+          <h1 className="mt-1.5 text-[30px] font-semibold leading-tight tracking-tight sm:text-[34px]">{q.name}</h1>
         </div>
         <Button variant="ghost" onClick={() => setConfirmDelete(true)} disabled={busy}>
           Delete queue
@@ -133,15 +138,18 @@ export function QueuePage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
         <div className="space-y-6">
           {/* ---- the counter display */}
-          <section aria-label="Now serving" className="on-board rounded-lg bg-board p-5 text-white sm:p-8">
-            <p className="text-lg text-white/60">Now serving</p>
+          <section aria-label="Now serving" className="board on-board rounded-2xl p-6 text-white shadow-pop sm:p-8">
+            <p className="flex items-center gap-2.5 text-sm font-medium uppercase tracking-[0.14em] text-white/60">
+              {q.serving ? <LiveDot /> : <span className="size-2 rounded-full bg-white/25" aria-hidden="true" />}
+              Now serving
+            </p>
             {q.serving ? (
-              <div className="mt-1 flex flex-wrap items-end gap-x-6 gap-y-2">
-                <span className="font-display text-[clamp(84px,14vw,136px)] font-semibold leading-[0.85] tracking-tight text-signal">
+              <div className="mt-3 flex flex-wrap items-end gap-x-7 gap-y-3">
+                <span className="font-mono text-[clamp(76px,13vw,128px)] font-semibold leading-[0.85] tracking-tighter text-signal">
                   {tokenCode(q.serving.number)}
                 </span>
-                <span className="pb-2">
-                  <span className="block text-2xl font-semibold">{who(q.serving)}</span>
+                <span className="pb-1.5">
+                  <span className="block text-2xl font-semibold tracking-tight">{who(q.serving)}</span>
                   <span className="text-white/60">
                     Called {formatDuration(waitedSec(q.serving.serving_at!))} ago · waited{' '}
                     {formatDuration((new Date(q.serving.serving_at!).getTime() - new Date(q.serving.created_at).getTime()) / 1000)}
@@ -149,22 +157,21 @@ export function QueuePage() {
                 </span>
               </div>
             ) : (
-              <p className="mt-2 font-display text-5xl font-semibold leading-tight text-white/35">Counter is free</p>
+              <p className="mt-3 text-4xl font-semibold leading-tight tracking-tight text-white/35 sm:text-5xl">Counter is free</p>
             )}
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button variant="signal" className="h-12 px-6 text-base" disabled={busy || (!next && !q.serving)}
+              <Button variant="signal" size="xl" disabled={busy || (!next && !q.serving)}
                 onClick={() => action.mutate(() => api.serveNext(id))}>
                 {next ? `Call next: ${tokenCode(next.number)}` : q.serving ? 'Finish (no one waiting)' : 'No one waiting'}
               </Button>
               {q.serving && (
                 <>
-                  <Button className="h-12 border border-board-line bg-transparent text-white hover:bg-white/10"
-                    disabled={busy} onClick={() => action.mutate(() => api.complete(id))}>
+                  <Button variant="board" size="xl" disabled={busy} onClick={() => action.mutate(() => api.complete(id))}>
                     Mark as done
                   </Button>
                   <button type="button" disabled={busy} onClick={() => setCancelTarget(q.serving)}
-                    className="px-2 text-[15px] font-semibold text-white/60 hover:text-white disabled:text-white/30">
+                    className="rounded-lg px-3 py-2 text-[15px] font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white disabled:text-white/30 disabled:hover:bg-transparent">
                     Didn't show up
                   </button>
                 </>
@@ -175,27 +182,32 @@ export function QueuePage() {
           <div className="lg:hidden">{addPanel('mobile')}</div>
 
           {/* ---- the line */}
-          <Panel>
-            <div className="flex items-baseline justify-between border-b border-line px-5 py-4">
-              <h2 className="text-xl font-semibold">Waiting</h2>
-              <span className="text-slate">
+          <Panel className="overflow-hidden">
+            <div className="flex items-center justify-between border-b border-line px-5 py-4">
+              <h2 className="text-lg font-semibold tracking-tight">Waiting</h2>
+              <Pill>
                 {q.waiting.length} {q.waiting.length === 1 ? 'person' : 'people'}
-              </span>
+              </Pill>
             </div>
             {q.waiting.length === 0 ? (
-              <p className="px-5 py-12 text-center text-slate">
+              <p className="px-5 py-14 text-center text-slate">
                 No one is waiting. Add people with the form to issue them a token.
               </p>
             ) : (
               <ol className="divide-y divide-line">
                 {q.waiting.map((t, i) => (
-                  <li key={t.id} className="flex items-center gap-3 px-4 py-3 sm:gap-4 sm:px-5">
-                    <span className="w-5 shrink-0 text-right text-slate sm:w-6" aria-label={`Position ${i + 1}`}>{i + 1}</span>
-                    <span className="min-w-[56px] shrink-0 font-display text-[28px] font-semibold leading-none sm:min-w-[72px] sm:text-[34px]">
+                  <li key={t.id} className="flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-ground/70 sm:gap-4 sm:px-5">
+                    <span className="w-5 shrink-0 text-right text-sm text-faint sm:w-6" aria-label={`Position ${i + 1}`}>{i + 1}</span>
+                    <span className={`min-w-[58px] shrink-0 rounded-lg border px-2 py-1.5 text-center font-mono text-xl font-semibold leading-none tracking-tight sm:min-w-[66px] sm:text-[22px] ${
+                      i === 0 ? 'border-signal/40 bg-signal-soft text-signal-ink' : 'border-line bg-ground'
+                    }`}>
                       {tokenCode(t.number)}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className={`block truncate font-semibold ${t.label ? '' : 'text-slate'}`}>{who(t)}</span>
+                      <span className="flex items-center gap-2">
+                        <span className={`block truncate font-medium ${t.label ? '' : 'text-slate'}`}>{who(t)}</span>
+                        {i === 0 && <Pill tone="signal">Next</Pill>}
+                      </span>
                       <span className="block whitespace-nowrap text-sm text-slate">
                         Waiting {formatDuration(waitedSec(t.created_at))}
                         <span className="hidden sm:inline"> · joined {formatClock(t.created_at)}</span>
@@ -210,8 +222,8 @@ export function QueuePage() {
                         onClick={() => action.mutate(() => api.moveToken(id, t.id, 'down'))}>
                         {Icon.down}
                       </IconButton>
-                      <IconButton label={`Cancel ${tokenCode(t.number)}`} disabled={busy}
-                        className="hover:text-danger" onClick={() => setCancelTarget(t)}>
+                      <IconButton label={`Cancel ${tokenCode(t.number)}`} tone="danger" disabled={busy}
+                        onClick={() => setCancelTarget(t)}>
                         {Icon.cross}
                       </IconButton>
                     </span>
@@ -225,18 +237,19 @@ export function QueuePage() {
         <div className="space-y-6">
           <div className="hidden lg:block">{addPanel('desktop')}</div>
 
-          <Panel>
-            <h2 className="border-b border-line px-5 py-4 text-xl font-semibold">Recently finished</h2>
+          <Panel className="overflow-hidden">
+            <h2 className="border-b border-line px-5 py-4 text-lg font-semibold tracking-tight">Recently finished</h2>
             {q.recent.length === 0 ? (
               <p className="px-5 py-8 text-slate">Served and cancelled tokens will appear here.</p>
             ) : (
               <ul className="divide-y divide-line">
                 {q.recent.map((t) => (
                   <li key={t.id} className="flex items-center gap-3 px-5 py-2.5">
-                    <span className="min-w-12 font-display text-2xl font-semibold text-slate">{tokenCode(t.number)}</span>
+                    <span className="min-w-11 font-mono text-[15px] font-medium text-slate">{tokenCode(t.number)}</span>
                     <span className="min-w-0 flex-1 truncate text-[15px]">{who(t)}</span>
-                    <span className={`text-sm font-semibold ${t.status === 'served' ? 'text-ok' : 'text-slate'}`}>
-                      {t.status === 'served' ? 'Served' : 'Cancelled'} {formatClock((t.served_at ?? t.cancelled_at)!)}
+                    <span className="flex shrink-0 items-center gap-2 text-sm text-slate">
+                      <Pill tone={t.status === 'served' ? 'ok' : 'neutral'}>{t.status === 'served' ? 'Served' : 'Cancelled'}</Pill>
+                      {formatClock((t.served_at ?? t.cancelled_at)!)}
                     </span>
                   </li>
                 ))}

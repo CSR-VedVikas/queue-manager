@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Shell, WakeBanner } from './components/Shell'
-import { Button } from './components/ui'
+import { Button, Loading, Spinner } from './components/ui'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './pages/AuthPage'
 import { QueuePage } from './pages/QueuePage'
@@ -19,16 +19,21 @@ function RequireAuth({ children }: { children: ReactNode }) {
     return (
       <div className="min-h-screen">
         <WakeBanner />
-        <p className="py-24 text-center text-slate" role="status">Signing you in…</p>
+        <p className="flex items-center justify-center gap-3 py-28 text-slate" role="status">
+          <Spinner />
+          Signing you in…
+        </p>
       </div>
     )
   }
   if (restoreError) {
     return (
-      <div className="mx-auto max-w-md px-6 py-24 text-center">
-        <p className="text-xl font-semibold">Can't reach the server</p>
-        <p className="mt-2 text-slate">{restoreError}</p>
-        <Button className="mt-6" onClick={retryRestore}>Try again</Button>
+      <div className="mx-auto max-w-md px-6 py-24">
+        <div className="rounded-2xl border border-line bg-white px-8 py-10 text-center shadow-card">
+          <p className="text-xl font-semibold tracking-tight">Can't reach the server</p>
+          <p className="mt-2 text-slate">{restoreError}</p>
+          <Button className="mt-6" onClick={retryRestore}>Try again</Button>
+        </div>
       </div>
     )
   }
@@ -38,9 +43,10 @@ function RequireAuth({ children }: { children: ReactNode }) {
 
 function NotFound() {
   return (
-    <div className="py-16 text-center">
-      <p className="text-xl font-semibold">Page not found</p>
-      <Link to="/queues" className="mt-4 inline-block font-semibold underline underline-offset-4">Go to your queues</Link>
+    <div className="py-20 text-center">
+      <p className="font-mono text-sm font-medium text-faint">404</p>
+      <p className="mt-2 text-2xl font-semibold tracking-tight">Page not found</p>
+      <Link to="/queues" className="mt-4 inline-block font-medium underline decoration-line decoration-2 underline-offset-4 hover:decoration-ink">Go to your queues</Link>
     </div>
   )
 }
@@ -54,7 +60,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/queues" replace />} />
         <Route path="/queues" element={<QueuesPage />} />
         <Route path="/queues/:queueId" element={<QueuePage />} />
-        <Route path="/dashboard" element={<Suspense fallback={<p className="py-16 text-center text-slate">Loading dashboard…</p>}><DashboardPage /></Suspense>} />
+        <Route path="/dashboard" element={<Suspense fallback={<Loading what="dashboard" />}><DashboardPage /></Suspense>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
